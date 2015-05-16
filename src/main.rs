@@ -1,3 +1,5 @@
+ #![allow(non_snake_case, non_upper_case_globals)]
+
 extern crate time;
 extern crate term;
 extern crate rustc_serialize as serialize;
@@ -259,7 +261,6 @@ pub struct Data  {
     weather: Vec<Weather>
 }
 
-#[allow(non_snake_case)]
 #[derive(RustcDecodable, RustcEncodable, Debug)]
 pub struct WeatherCondition {
     cloudcover: i32,
@@ -292,7 +293,6 @@ pub struct Request {
     // type_: String
 }
 
-#[allow(non_snake_case)]
 #[derive(RustcDecodable, RustcEncodable, Debug)]
 pub struct Weather {
     astronomy: Vec<Astronomy>,
@@ -306,14 +306,14 @@ pub struct Weather {
 impl Weather {
     fn print_day(&self, w: &mut Write) -> Result<(), Error> {
         let date_fmt = "┤ ".to_string() + strftime("%a %d. %b", strptime(&self.date, "%Y-%m-%d").as_ref().unwrap()).as_ref().unwrap() + " ├";
-        writeln!(w, "                                                       ┌─────────────┐                                                       ");
-	writeln!(w, "┌──────────────────────────────┬───────────────────────{}───────────────────────┬──────────────────────────────┐", date_fmt);
-        writeln!(w, "│           Morning            │             Noon      └──────┬──────┘    Evening            │            Night             │");
-        writeln!(w, "├──────────────────────────────┼──────────────────────────────┼──────────────────────────────┼──────────────────────────────┤");
+        try!(writeln!(w, "                                                       ┌─────────────┐                                                       "));
+	try!(writeln!(w, "┌──────────────────────────────┬───────────────────────{}───────────────────────┬──────────────────────────────┐", date_fmt));
+        try!(writeln!(w, "│           Morning            │             Noon      └──────┬──────┘    Evening            │            Night             │"));
+        try!(writeln!(w, "├──────────────────────────────┼──────────────────────────────┼──────────────────────────────┼──────────────────────────────┤"));
         for line in self.format_day().iter() {
-            writeln!(w, "{}", line);
+            try!(writeln!(w, "{}", line));
         }
-        writeln!(w, "└──────────────────────────────┴──────────────────────────────┴──────────────────────────────┴──────────────────────────────┘");
+        try!(writeln!(w, "└──────────────────────────────┴──────────────────────────────┴──────────────────────────────┴──────────────────────────────┘"));
         Ok(())
     }
 
@@ -485,7 +485,7 @@ fn main() {
     }
 
     for w in data.weather.iter().take(DAYS) {
-        w.print_day(&mut stdout);
+        w.print_day(&mut stdout).unwrap();
     }
 }
 
