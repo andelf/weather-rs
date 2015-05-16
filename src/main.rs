@@ -1,25 +1,26 @@
  #![allow(non_snake_case, non_upper_case_globals)]
-
 extern crate time;
 extern crate term;
-extern crate rustc_serialize as serialize;
 extern crate rustc_serialize;
 extern crate hyper;
+extern crate getopts;
 
-
+use std::env;
 use std::io::Error;
 use std::io::prelude::*;
 use std::iter;
 use std::iter::FromIterator;
 use time::{strftime, strptime};
-use serialize::json;
+use rustc_serialize::json;
 use hyper::{Client, Url};
+use getopts::Options;
 
 static BASE_URL: &'static str = "https://api.worldweatheronline.com/free/v2/weather.ashx";
 static KEY: &'static str = "a444bbde1001764c4634bc7079a7c";
 static CELL_WIDTH: usize = 30;
-static DAYS: usize = 3;
-
+// configuration
+static mut DAYS: usize = 3;
+static mut USE_ZH: bool = false;
 
 pub trait HasTerminalDisplayLength {
     fn len_on_term(&self) -> usize;
@@ -38,7 +39,17 @@ impl HasTerminalDisplayLength for String {
                 wait_for_color_mark_ends = false;
             } else {
                 if !wait_for_color_mark_ends {
-                    ret += 1;
+                    match c {
+                        // http://blog.oasisfeng.com/2006/10/19/full-cjk-unicode-range/
+                        '\u{3400}'...'\u{4DB5}' | '\u{4E00}'...'\u{9FA5}' | '\u{9FA6}'...'\u{9FBB}' |
+                        '\u{F900}'...'\u{FA2D}' | '\u{FA30}'...'\u{FA6A}' | '\u{FA70}'...'\u{FAD9}' |
+                        '\u{20000}'...'\u{2A6D6}' | '\u{2F800}'...'\u{2FA1D}' |
+                        '\u{FF00}'...'\u{FFEF}' | '\u{2E80}'...'\u{2EFF}' |
+                        '\u{3000}'...'\u{303F}' | '\u{31C0}'...'\u{31EF}' =>
+                            ret += 2,
+                        _ =>
+                            ret += 1
+                    }
                 }
             }
         }
@@ -46,12 +57,12 @@ impl HasTerminalDisplayLength for String {
     }
 
     fn fit_to_term_len(&self, new_len: usize) -> String {
-        let actual_len = self.len() + new_len - self.len_on_term();
+        // NOTE: .len is bytes len(); str Index is in bytes
         if self.len_on_term() < new_len  {
-            String::from_iter(self
-                              .chars()
-                              .chain(iter::repeat(' ').take(actual_len - self.len())))
+            let actual_char_len = self.chars().count() + new_len - self.len_on_term();
+            String::from_iter(self.chars().chain(iter::repeat(' ')).take(actual_char_len))
         } else {
+            let actual_len = self.len() + new_len - self.len_on_term();
             self[..actual_len].to_string()
         }
     }
@@ -276,6 +287,7 @@ pub struct WeatherCondition {
     observation_time: Option<String>,
     visibility: i32,
     weatherDesc: Vec<ValueWrapper>,
+    lang_zh: Vec<ValueWrapper>,
     winddir16Point: String,
     windspeedKmph: i32,
     WindGustKmph: Option<i32>
@@ -402,7 +414,7 @@ impl WeatherCondition {
     }
 
     fn format_visibility(&self) -> String {
-        format!("{} {}            ", self.visibility, "km")[..15].to_string()
+        format!("{} {}", self.visibility, "km").to_string()
     }
 
     fn format_wind(&self) -> String {
@@ -412,7 +424,7 @@ impl WeatherCondition {
                     wind_dir_to_icon(self.winddir16Point.as_ref()),
                     colorized_wind(self.windspeedKmph),
                     colorized_wind(windGustKmph),
-                    "km/h")[..57].to_string()
+                    "km/h").to_string()
         } else {
             format!("{} {} {}      ",
                     wind_dir_to_icon(self.winddir16Point.as_ref()),
@@ -448,7 +460,11 @@ impl WeatherCondition {
     fn format(&self) -> Vec<String> {
         let icon = code_to_icon(self.weatherCode);
         vec![
-            format!("{} {:-15.15}", icon[0], self.weatherDesc[0].value).fit_to_term_len(CELL_WIDTH),
+            if unsafe { USE_ZH } {
+                format!("{} {:-15.15}", icon[0], self.lang_zh[0].value).fit_to_term_len(CELL_WIDTH)
+            } else {
+                format!("{} {:-15.15}", icon[0], self.weatherDesc[0].value).fit_to_term_len(CELL_WIDTH)
+            },
             format!("{} {}", icon[1], self.format_temp()).fit_to_term_len(CELL_WIDTH),
             format!("{} {}", icon[2], self.format_wind()).fit_to_term_len(CELL_WIDTH),
             format!("{} {}", icon[3], self.format_visibility()).fit_to_term_len(CELL_WIDTH),
@@ -457,12 +473,45 @@ impl WeatherCondition {
 }
 
 
+fn print_usage(program: &str, opts: &Options) {
+    let brief = format!("Usage: {} [options] [CITY]", program);
+    print!("{}", opts.usage(&brief));
+}
+
 fn main() {
     let mut stdout = term::stdout().unwrap();
 
+    let args = env::args().collect::<Vec<String>>();
+
+    let mut opts = Options::new();
+
+    opts.optflag("h", "help", "print help message")
+        .optflag("", "zh", "use zh-cn locale");
+
+    let matches = match opts.parse(&args[1..]) {
+        Ok(m) => m,
+        Err(f) => panic!(f.to_string())
+    };
+
+    if matches.opt_present("h") {
+        print_usage(&args[0], &opts);
+        return;
+    }
+
+    if matches.opt_present("zh") {
+        unsafe { USE_ZH = true; }
+    }
+
+    let city = if !matches.free.is_empty() {
+        matches.free.connect(" ")
+    } else {
+        "Beijing".to_string()
+    };
+
     let mut url = Url::parse(BASE_URL).unwrap();
-    url.set_query_from_pairs(vec![("q", "Guangzhou"),
+    url.set_query_from_pairs(vec![("q", city.as_ref()),
                                   ("key", KEY),
+                                  ("lang", "zh"),
                                   ("format", "json")].iter().map(|&pair| pair));
 
     let mut client = Client::new();
@@ -486,15 +535,7 @@ fn main() {
         println!("{}", line);
     }
 
-    for w in data.weather.iter().take(DAYS) {
+    for w in data.weather.iter().take(unsafe { DAYS }) {
         w.print_day(&mut stdout).unwrap();
     }
-}
-
-#[test]
-fn test_len_on_term() {
-    let a = " \u{1b}[38;5;226m    \\   /    \u{1b}[0m Sunny             ".to_string();
-    assert_eq!(a.len_on_term(), 33);
-    let b = " \u{1b}[38;5;226m     .-.     \u{1b}[0m \u{1b}[38;5;226m24\u{1b}[0m - \u{1b}[38;5;220m25\u{1b}[0m \u{b0}C        ".to_string();
-    assert_eq!(a.len_on_term(), 33);
 }

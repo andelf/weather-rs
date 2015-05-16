@@ -4,9 +4,24 @@ Weather app for the terminal. Rust version :)
 
 Rewrite of the [schachmat/wego](https://github.com/schachmat/wego).
 
+With Simplified-Chinese support.
+
+## Usage
+
+```
+Usage: target/debug/weather [options] [CITY]
+
+Options:
+    -h --help           print help message
+    --zh                use zh-cn locale
+```
+
+    $> cargo run --zh Guangzhou
+
+
 ## Screenshots
 
-![Screenshots](http://i.imgur.com/fpvxTs6.png?1)
+![Screenshots](http://i.imgur.com/xgRuPic.png?1)
 
 ## License
 
