@@ -471,12 +471,14 @@ fn main() {
 
     let mut buf = String::with_capacity(65535);
     match res.read_to_string(&mut buf) {
-        Ok(_) => (),
+        Ok(_)  => (),
         Err(e) => println!("err => {:?}", e)
     }
 
-    let decoded: DataWrapper = json::decode(buf.as_ref()).unwrap();
-    let data = decoded.data;
+    let data = match json::decode::<DataWrapper>(buf.as_ref()) {
+        Ok(decoded) => decoded.data,
+        Err(_)      => unreachable!("Unable to decode {:?}", buf)
+    };
 
     println!("Weather for: {}\n\n", data.request[0].query);
 
