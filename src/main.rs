@@ -305,7 +305,6 @@ pub struct Weather {
 
 impl Weather {
     fn print_day(&self, w: &mut Write) -> Result<(), Error> {
-        println!("Debug => {}", self.date);
         let date_fmt = "┤ ".to_string() + strftime("%a %d. %b", strptime(&self.date, "%Y-%m-%d").as_ref().unwrap()).as_ref().unwrap() + " ├";
         writeln!(w, "                                                       ┌─────────────┐                                                       ");
 	writeln!(w, "┌──────────────────────────────┬───────────────────────{}───────────────────────┬──────────────────────────────┐", date_fmt);
