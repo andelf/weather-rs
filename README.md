@@ -14,6 +14,7 @@ Usage: target/debug/weather [options] [CITY]
 Options:
     -h --help           print help message
     --zh                use zh-cn locale
+    -d --days DAYS      number of days in output
 ```
 
     $> cargo run --zh Guangzhou

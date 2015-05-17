@@ -20,7 +20,6 @@ static BASE_URL: &'static str = "https://api.worldweatheronline.com/free/v2/weat
 static KEY: &'static str = "a444bbde1001764c4634bc7079a7c";
 static CELL_WIDTH: usize = 30;
 // configuration
-static mut DAYS: usize = 3;
 static mut USE_ZH: bool = false;
 
 pub trait HasTerminalDisplayLength {
@@ -488,7 +487,7 @@ fn main() {
 
     opts.optflag("h", "help", "print help message")
         .optflag("", "zh", "use zh-cn locale")
-        .optopt("d", "days", "output how many days info", "DAYS");
+        .optopt("d", "days", "number of days in output", "DAYS");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
@@ -504,12 +503,7 @@ fn main() {
         unsafe { USE_ZH = true; }
     }
 
-    let somedays: String = match matches.opt_str("days") {
-        Some(s) => s,
-        None => "3".to_string()
-    };
-    let somedays_n: usize = FromStr::from_str(&somedays).unwrap();
-    unsafe { DAYS = somedays_n; }
+    let num_of_days: usize = matches.opt_str("days").map(|ref s| usize::from_str(s).ok().expect("days must be a number")).unwrap_or(3);
 
     let city = if !matches.free.is_empty() {
         matches.free.connect(" ")
@@ -544,7 +538,7 @@ fn main() {
         println!("{}", line);
     }
 
-    for w in data.weather.iter().take(unsafe { DAYS }) {
+    for w in data.weather.iter().take(num_of_days) {
         w.print_day(&mut stdout).unwrap();
     }
 }
