@@ -10,6 +10,7 @@ use std::io::Error;
 use std::io::prelude::*;
 use std::iter;
 use std::iter::FromIterator;
+use std::str::FromStr;
 use time::{strftime, strptime};
 use rustc_serialize::json;
 use hyper::{Client, Url};
@@ -486,7 +487,8 @@ fn main() {
     let mut opts = Options::new();
 
     opts.optflag("h", "help", "print help message")
-        .optflag("", "zh", "use zh-cn locale");
+        .optflag("", "zh", "use zh-cn locale")
+        .optopt("d", "days", "output how many days info", "DAYS");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
@@ -501,6 +503,13 @@ fn main() {
     if matches.opt_present("zh") {
         unsafe { USE_ZH = true; }
     }
+
+    let somedays: String = match matches.opt_str("days") {
+        Some(s) => s,
+        None => "3".to_string()
+    };
+    let somedays_n: usize = FromStr::from_str(&somedays).unwrap();
+    unsafe { DAYS = somedays_n; }
 
     let city = if !matches.free.is_empty() {
         matches.free.connect(" ")
