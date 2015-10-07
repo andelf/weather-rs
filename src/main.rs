@@ -16,7 +16,7 @@ use rustc_serialize::json;
 use hyper::{Client, Url};
 use getopts::Options;
 
-static BASE_URL: &'static str = "https://api.worldweatheronline.com/free/v2/weather.ashx";
+static BASE_URL: &'static str = "http://api.worldweatheronline.com/free/v2/weather.ashx";
 static KEY: &'static str = "a444bbde1001764c4634bc7079a7c";
 static CELL_WIDTH: usize = 30;
 // configuration
@@ -507,7 +507,7 @@ fn main() {
     let num_of_days: usize = matches.opt_str("days").map(|ref s| usize::from_str(s).ok().expect("days must be a number")).unwrap_or(3);
 
     let city = if !matches.free.is_empty() {
-        matches.free.connect(" ")
+        matches.free.join(" ")
     } else {
         "Beijing".to_string()
     };
@@ -518,7 +518,7 @@ fn main() {
                                   ("lang", "zh"),
                                   ("format", "json")].iter().map(|&pair| pair));
 
-    let mut client = Client::new();
+    let client = Client::new();
 
     let mut res = client.get(url).send().unwrap();
 

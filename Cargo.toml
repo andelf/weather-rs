@@ -7,6 +7,6 @@ authors = ["andelf <andelf@gmail.com>"]
 [dependencies]
 time = "*"
 term = "*"
-rustc-serialize = "0.3.14"
+rustc-serialize = "0.3"
 hyper = "*"
 getopts = "0.2"
