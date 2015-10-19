@@ -71,21 +71,21 @@ impl HasTerminalDisplayLength for String {
 fn wind_dir_to_icon(code: &str) -> &'static str {
     match code {
         "N"   => "\u{1b}[1m↓\u{1b}[0m",
-	"NNE" => "\u{1b}[1m↓\u{1b}[0m",
-	"NE"  => "\u{1b}[1m↙\u{1b}[0m",
-	"ENE" => "\u{1b}[1m↙\u{1b}[0m",
-	"E"   => "\u{1b}[1m←\u{1b}[0m",
-	"ESE" => "\u{1b}[1m←\u{1b}[0m",
-	"SE"  => "\u{1b}[1m↖\u{1b}[0m",
-	"SSE" => "\u{1b}[1m↖\u{1b}[0m",
-	"S"   => "\u{1b}[1m↑\u{1b}[0m",
-	"SSW" => "\u{1b}[1m↑\u{1b}[0m",
-	"SW"  => "\u{1b}[1m↗\u{1b}[0m",
-	"WSW" => "\u{1b}[1m↗\u{1b}[0m",
-	"W"   => "\u{1b}[1m→\u{1b}[0m",
-	"WNW" => "\u{1b}[1m→\u{1b}[0m",
-	"NW"  => "\u{1b}[1m↘\u{1b}[0m",
-	"NNW" => "\u{1b}[1m↘\u{1b}[0m",
+	      "NNE" => "\u{1b}[1m↓\u{1b}[0m",
+	      "NE"  => "\u{1b}[1m↙\u{1b}[0m",
+	      "ENE" => "\u{1b}[1m↙\u{1b}[0m",
+	      "E"   => "\u{1b}[1m←\u{1b}[0m",
+	      "ESE" => "\u{1b}[1m←\u{1b}[0m",
+	      "SE"  => "\u{1b}[1m↖\u{1b}[0m",
+	      "SSE" => "\u{1b}[1m↖\u{1b}[0m",
+	      "S"   => "\u{1b}[1m↑\u{1b}[0m",
+	      "SSW" => "\u{1b}[1m↑\u{1b}[0m",
+	      "SW"  => "\u{1b}[1m↗\u{1b}[0m",
+	      "WSW" => "\u{1b}[1m↗\u{1b}[0m",
+	      "W"   => "\u{1b}[1m→\u{1b}[0m",
+	      "WNW" => "\u{1b}[1m→\u{1b}[0m",
+	      "NW"  => "\u{1b}[1m↘\u{1b}[0m",
+	      "NNW" => "\u{1b}[1m↘\u{1b}[0m",
         _     => " "
     }
 }
@@ -367,24 +367,24 @@ pub struct Astronomy {
 fn colorized_temp(temp: i32) -> String {
     let col = match temp {
         -15 | -14 | -13 => 27,
-	-12 | -11 | -10 => 33,
-	-9 | -8 | -7    => 39,
-	-6 | -5 | -4    => 45,
-	-3 | -2 | -1    => 51,
-	0 | 1           => 50,
-	2 | 3           => 49,
-	4 | 5           => 48,
-	6 | 7           => 47,
-	8 | 9           => 46,
-	10 | 11 | 12    => 82,
-	13 | 14 | 15    => 118,
-	16 | 17 | 18    => 154,
-	19 | 20 | 21    => 190,
-	22 | 23 | 24    => 226,
-	25 | 26 | 27    => 220,
-	28 | 29 | 30    => 214,
-	31 | 32 | 33    => 208,
-	34 | 35 | 36    => 202,
+	      -12 | -11 | -10 => 33,
+	      -9 | -8 | -7    => 39,
+	      -6 | -5 | -4    => 45,
+	      -3 | -2 | -1    => 51,
+	      0 | 1           => 50,
+	      2 | 3           => 49,
+	      4 | 5           => 48,
+	      6 | 7           => 47,
+	      8 | 9           => 46,
+	      10 | 11 | 12    => 82,
+	      13 | 14 | 15    => 118,
+	      16 | 17 | 18    => 154,
+	      19 | 20 | 21    => 190,
+	      22 | 23 | 24    => 226,
+	      25 | 26 | 27    => 220,
+	      28 | 29 | 30    => 214,
+	      31 | 32 | 33    => 208,
+	      34 | 35 | 36    => 202,
         _ if temp > 0   => 196,
         _               => 21
     };
@@ -487,8 +487,8 @@ fn main() {
     let mut opts = Options::new();
 
     opts.optflag("h", "help", "print help message")
-        .optflag("", "zh", "use zh-cn locale")
-        .optopt("d", "days", "number of days in output", "DAYS");
+        .optflag("",  "zh",   "use zh-cn locale")
+        .optopt("d",  "days", "number of days in output", "DAYS");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
@@ -518,7 +518,7 @@ fn main() {
                                   ("lang", "zh"),
                                   ("format", "json")].iter().map(|&pair| pair));
 
-    let client = Client::new();
+    let mut client = Client::new();
 
     let mut res = client.get(url).send().unwrap();
 
