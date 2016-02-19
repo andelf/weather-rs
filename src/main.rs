@@ -518,7 +518,7 @@ fn main() {
                                   ("lang", "zh"),
                                   ("format", "json")].iter().map(|&pair| pair));
 
-    let mut client = Client::new();
+    let client = Client::new();
 
     let mut res = client.get(url).send().unwrap();
 
