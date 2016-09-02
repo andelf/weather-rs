@@ -513,10 +513,12 @@ fn main() {
     };
 
     let mut url = Url::parse(BASE_URL).unwrap();
-    url.set_query_from_pairs(vec![("q", city.as_ref()),
-                                  ("key", KEY),
-                                  ("lang", "zh"),
-                                  ("format", "json")].iter().map(|&pair| pair));
+    url.query_pairs_mut()
+        .clear()
+        .append_pair("q", &city)
+        .append_pair("key", KEY)
+        .append_pair("lang", "zh")
+        .append_pair("format", "json");
 
     let client = Client::new();
 
