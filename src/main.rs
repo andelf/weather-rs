@@ -517,6 +517,7 @@ fn main() {
         .clear()
         .append_pair("q", &city)
         .append_pair("key", KEY)
+        .append_pair("num_of_days", &num_of_days.to_string())
         .append_pair("lang", "zh")
         .append_pair("format", "json");
 
